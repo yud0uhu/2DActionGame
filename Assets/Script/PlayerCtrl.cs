@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerCtrl : MonoBehaviour
 {
@@ -26,6 +27,7 @@ public class PlayerCtrl : MonoBehaviour
         this.spRenderer = GetComponent<SpriteRenderer>();
 
         Sound.LoadSe("gameover","img11");
+        Sound.LoadSe("damage","se_maoudamashii_retro22");
     }
 
     // Update is called once per frame
@@ -89,7 +91,8 @@ public class PlayerCtrl : MonoBehaviour
 
     IEnumerator Dead(){
 
-        anim.SetBool("isDamage",true);
+        isDead = true;
+        anim.SetBool("Dead",true);
 
         // コルーチンでウェイトを入れる
         // yield returnで処理を中断できる
@@ -99,17 +102,35 @@ public class PlayerCtrl : MonoBehaviour
         // ダメージを落ちた後下に落ちていくため、当たり判定をオフに
         GetComponent<CircleCollider2D>().enabled = false;
         Sound.PlaySe("gameover",0);
+        SceneManager.LoadScene("GameOver", LoadSceneMode.Additive);
     }
 
     // 敵オブジェクトのコライダーを識別
     void OnTriggerEnter2D( Collider2D col ){ // 通り抜けたかどうか
 
         if(col.gameObject.tag == "Enemy"){
-            isDead = true;
-            // コルーチンを実行
-            StartCoroutine("Dead");
+            // isDead = true;
+            // // コルーチンを実行
+            // StartCoroutine("Dead");
+
+            StartCoroutine("Damage");
+            // this.gameObjectはそのクラスがアタッチされているゲームオブジェクトを指す
+            this.gameObject.GetComponent<Player>().Damage();
+
         }
 
+    }
+
+    IEnumerator Damage(){
+
+        anim.SetBool("isDamage",true);
+
+        // コルーチンでウェイトを入れる
+        // yield returnで処理を中断できる
+        yield return new WaitForSeconds(0.5f);
+        
+        anim.SetBool("isDamage",false);
+        Sound.PlaySe("damage");
     }
 
     // タイルマップのコリジョンを識別
@@ -118,6 +139,7 @@ public class PlayerCtrl : MonoBehaviour
         if(col.gameObject.tag == "Damage"){
             // 障害物に当たったら死亡フラグをONにする
             // TODO:ライフを減らす処理に変更する
+        
             isDead = true;
             StartCoroutine("Dead");
         }
