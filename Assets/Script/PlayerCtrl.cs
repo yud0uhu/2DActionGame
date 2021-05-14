@@ -33,60 +33,7 @@ public class PlayerCtrl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float x = Input.GetAxisRaw("Horizontal"); // Aキー-1・なにもしない0・Dキーで1が帰ってくる関数
-
-        // スプライトの向きを変える
-        if ( x < 0 ) {
-            spRenderer.flipX = true;
-        } else if ( x > 0 ) {
-            spRenderer.flipX = false;
-        }
-
-        if(isDead==false){
-            rd2d.AddForce( Vector2.right * x * speed );　// 2Dベクトルの右方向に速度変数を掛けている(横方向に力を加えている)
-        }
-        anim.SetFloat("Speed", Mathf.Abs( x * speed )); // 歩くアニメーション
-
-        // Translate(物理演算無視)でvelocity(移動量)ゼロになる
-        if(isSloped){
-            this.gameObject.transform.Translate( 0.1f * x, 0.0f, 0.0f );
-        }
-
-        if ( Input.GetButtonDown("Jump") & isGround==false ){ // Input.GetKeyDown->キーを押していない状態から押した時
-        
-            // ジャンプキーが押された&地面にいるならジャンプ
-            anim.SetBool("isJump", true);
-
-            rd2d.AddForce( Vector2.up * jumpForce );
-
-        }
-
-        if ( isGround==false ) { // 地面にいるときはジャンプモーションOFF
-            anim.SetBool( "isJump" , false );
-            anim.SetBool( "isFall" , false );
-        }
-
-        // 早くなりすぎないようにvelcotyを調整
-        float velX = rd2d.velocity.x;
-        float velY = rd2d.velocity.y;
-
-        if ( velY > 0.5f ) { // velocityが上向きに働いていたらジャンプ
-            anim.SetBool("isJump", true);
-        }
-        if ( velY < -0.1f ) { // velocityが下向きに働いていたら落下
-            anim.SetBool("isFall", true);
-        }
-
-        if ( Mathf.Abs(velX) > 5 ){
-
-            if (velX > 5.0f) {
-                rd2d.velocity = new Vector2( 5.0f, velY );
-            }
-            if (velX < -5.0f) {
-                rd2d.velocity = new Vector2( -5.0f, velY );
-            }
-        }
-
+       
     }
 
     IEnumerator Dead(){
@@ -148,9 +95,76 @@ public class PlayerCtrl : MonoBehaviour
 
     private void FixedUpdate()
     {
+        float x = Input.GetAxisRaw("Horizontal"); // Aキー-1・なにもしない0・Dキーで1が帰ってくる関数
+
+        // スプライトの向きを変える
+        if (x < 0)
+        {
+            spRenderer.flipX = true;
+        }
+        else if (x > 0)
+        {
+            spRenderer.flipX = false;
+        }
+
+        if (isDead == false)
+        {
+            rd2d.AddForce(Vector2.right * x * speed);　// 2Dベクトルの右方向に速度変数を掛けている(横方向に力を加えている)
+        }
+        anim.SetFloat("Speed", Mathf.Abs(x * speed)); // 歩くアニメーション
+
+        // Translate(物理演算無視)でvelocity(移動量)ゼロになる
+        if (isSloped)
+        {
+            this.gameObject.transform.Translate(0.1f * x, 0.0f, 0.0f);
+        }
+
+        if (Input.GetButtonDown("Jump") & isGround == false)
+        { // Input.GetKeyDown->キーを押していない状態から押した時
+
+            // ジャンプキーが押された&地面にいるならジャンプ
+            anim.SetBool("isJump", true);
+
+            rd2d.AddForce(Vector2.up * jumpForce);
+
+        }
+
+        if (isGround == false)
+        { // 地面にいるときはジャンプモーションOFF
+            anim.SetBool("isJump", false);
+            anim.SetBool("isFall", false);
+        }
+
+        // 早くなりすぎないようにvelcotyを調整
+        float velX = rd2d.velocity.x;
+        float velY = rd2d.velocity.y;
+
+        if (velY > 0.5f)
+        { // velocityが上向きに働いていたらジャンプ
+            anim.SetBool("isJump", true);
+        }
+        if (velY < -0.1f)
+        { // velocityが下向きに働いていたら落下
+            anim.SetBool("isFall", true);
+        }
+
+        if (Mathf.Abs(velX) > 5)
+        {
+
+            if (velX > 5.0f)
+            {
+                rd2d.velocity = new Vector2(5.0f, velY);
+            }
+            if (velX < -5.0f)
+            {
+                rd2d.velocity = new Vector2(-5.0f, velY);
+            }
+        }
+
+
         isGround = false;
 
-        float x = Input.GetAxisRaw("Horizontal");
+        //float x = Input.GetAxisRaw("Horizontal");
 
         // 自分の立っている場所
         Vector2 groundPos =
