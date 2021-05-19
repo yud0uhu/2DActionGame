@@ -7,6 +7,7 @@ public class PlayerCtrl : MonoBehaviour
 {
 
     public float speed = 5; // publicで変数を作るとUnity上でパラメータをかえられます
+    public float ladderspeed = 20;
     public float jumpForce = 900f;
     public LayerMask groundLayer;
 
@@ -19,6 +20,8 @@ public class PlayerCtrl : MonoBehaviour
     private bool isDead = false; // 死亡フラグ
     private int jump_power = 0;
     private int Max_jump_power = 1;//空中ジャンプの回数
+    private bool touchladder;
+    private bool laddermode;
 
     // Start is called before the first frame update
     void Start()
@@ -52,6 +55,36 @@ public class PlayerCtrl : MonoBehaviour
             }
 
 
+        }
+
+        //ハシゴに触れている時に上下の入力があったら"ハシゴモード"になる
+        if (touchladder == true && Input.GetAxisRaw("Vertical") != 0)
+        {
+            laddermode = true;
+            rd2d.velocity = Vector3.zero;
+        }
+        //ハシゴモードの時、落下したり踏み外さないようにする
+        if (laddermode == true)
+        {
+            rd2d.gravityScale = 0;
+            if (Input.GetAxisRaw("Horizontal") == 0)
+            {
+                rd2d.velocity = new Vector2(0, 0);
+            }
+            //ハシゴから離れたらハシゴモード解除
+            if (touchladder == false)
+            {
+                laddermode = false;
+            }
+            //ジャンプ入力でハシゴモード解除
+            else if (Input.GetButtonDown("Jump"))
+            {
+                laddermode = false;
+            }
+        }       
+        else
+        {
+            rd2d.gravityScale = 1;
         }
     }
 
@@ -87,8 +120,22 @@ public class PlayerCtrl : MonoBehaviour
             this.gameObject.GetComponent<Player>().Damage();
 
         }
+        //ハシゴに触れているか判定
+        if (col.gameObject.tag == "ladder")
+        {
+            touchladder = true;
 
+        }
     }
+    void OnTriggerExit2D(Collider2D col)
+    { 
+        //ハシゴから離れたか判定
+        if (col.gameObject.tag == "ladder")
+        {
+            touchladder = false;
+        }
+    }
+
 
     IEnumerator Damage()
     {
@@ -137,7 +184,7 @@ public class PlayerCtrl : MonoBehaviour
         {
             rd2d.AddForce(Vector2.right * x * speed);　// 2Dベクトルの右方向に速度変数を掛けている(横方向に力を加えている)
         }
-        anim.SetFloat("Speed", Mathf.Abs(x * speed)); // 歩くアニメーション
+        anim.SetFloat("Speed", Mathf.Abs(x * speed)); // 歩くアニメーションを判定する数値の更新
 
         // Translate(物理演算無視)でvelocity(移動量)ゼロになる
 
@@ -145,25 +192,18 @@ public class PlayerCtrl : MonoBehaviour
         {
             this.gameObject.transform.Translate(0.1f * x, 0.0f, 0.0f);
         }
+        
+        //はしごの移動処理
+        if(laddermode==true)
+        {
+            rd2d.AddForce(Vector2.up * Input.GetAxisRaw("Vertical") * ladderspeed);
+        }
+        
 
 
         // 早くなりすぎないようにvelcotyを調整
         float velX = rd2d.velocity.x;
         float velY = rd2d.velocity.y;
-
-        //閾値を小さく変更
-        //素早く反映されないと気持ち悪かったのと、velYが空中で0になる時間が十分に小さいため、空中歩きモーションを考慮しなくてよいため
-        //関連してアニメーターの終了時間（Has Exist Time）をなしに変更。ただしJump→Idleはありのまま
-        /*
-        if (velY > 0.1f)
-        { // velocityが上向きに働いていたらジャンプ
-            anim.SetBool("isJump", true);
-        }
-        if (velY < -0.1f)
-        { // velocityが下向きに働いていたら落下
-            anim.SetBool("isFall", true);
-        }
-        */
 
         if (Mathf.Abs(velX) > 5)
         {
@@ -177,7 +217,6 @@ public class PlayerCtrl : MonoBehaviour
                 rd2d.velocity = new Vector2(-5.0f, velY);
             }
         }
-
 
         //↓もともとFixUpdateの部分
         isGround = false;
@@ -213,26 +252,34 @@ public class PlayerCtrl : MonoBehaviour
                 groundPos - groundArea,//符号ミス
                 groundLayer // 地面とか敵とかでレイヤーを分けておく
             );
-
-        //地面にいる間は常に1なのでジャンプできる
-        //空中ではjumppowerを消費して一度だけジャンプできる
-        Debug.Log(velY);
-        if (isGround == true)
+        //ハシゴのアニメーション切り替え
+        if(laddermode==true)
         {
             jump_power = Max_jump_power;
-            Debug.Log("add");
+            anim.SetBool("isClimb", true);
             anim.SetBool("isJump", false);
             anim.SetBool("isFall", false);
+        }
+        //地面にいる間は常に1なのでジャンプできる
+        //空中ではjumppowerを消費して一度だけジャンプできる
+        else if (isGround == true)
+        {
+            jump_power = Max_jump_power;
+            anim.SetBool("isJump", false);
+            anim.SetBool("isFall", false);
+            anim.SetBool("isClimb", false);
         }
         else if (velY < 0f)
         { // velocityが下向きに働いていたら落下
             anim.SetBool("isFall", true);
             anim.SetBool("isJump", false);
+            anim.SetBool("isClimb", false);
         }
         else
         { // velocityが上向きに働いていたらジャンプ
             anim.SetBool("isJump", true);
             anim.SetBool("isFall", false);
+            anim.SetBool("isClimb", false);
         }
 
 

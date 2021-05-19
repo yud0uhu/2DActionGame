@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - Damage
   - Hook
+  - ladder
   layers:
   - Default
   - TransparentFX
