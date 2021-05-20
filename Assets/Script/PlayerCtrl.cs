@@ -14,7 +14,8 @@ public class PlayerCtrl : MonoBehaviour
     private Rigidbody2D rd2d;
     private Animator anim;
     private SpriteRenderer spRenderer;
-
+    [SerializeField] private PhysicsMaterial2D friction1;//摩擦を弄るためのマテリアル
+    [SerializeField] private PhysicsMaterial2D friction0;
     private bool isGround; // ジャンプフラグを返す変数
     private bool isSloped;
     private bool isDead = false; // 死亡フラグ
@@ -30,7 +31,6 @@ public class PlayerCtrl : MonoBehaviour
         this.rd2d = GetComponent<Rigidbody2D>();
         this.anim = GetComponent<Animator>();
         this.spRenderer = GetComponent<SpriteRenderer>();
-
         Sound.LoadSe("gameover", "img11");
         Sound.LoadSe("damage", "se_maoudamashii_retro22");
     }
@@ -281,7 +281,17 @@ public class PlayerCtrl : MonoBehaviour
             anim.SetBool("isFall", false);
             anim.SetBool("isClimb", false);
         }
-
+        
+        //空中にいる時は摩擦を０にする
+        if (isGround == false)
+        {
+            rd2d.sharedMaterial=friction0;
+        }
+        else
+        {
+            rd2d.sharedMaterial=friction1;
+        }
+        
 
         bool area1 = false; // こめかみ
         bool area2 = false; // 足の手前
